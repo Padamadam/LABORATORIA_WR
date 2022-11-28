@@ -6,7 +6,7 @@ hasło: maker
 
 ## Sending programmes to robot
 
-scp ~/Desktop/wr/LABORATORIA_WR robot@adres_ip_kostki:~/nazwa_programu
+scp ~/Desktop/wr/LABORATORIA_WR robot@adres_ip_kostki: /nazwa_programu
 
 ## Receiving programmes from robot
 
