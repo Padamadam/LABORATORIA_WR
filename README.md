@@ -1,13 +1,13 @@
 # General
 ## Connection
 
-komenda: ssh robot@adres_ip_kostki
+komenda: ssh robot@192.168.18.77
 hasło: maker
 
 ## Sending programmes to robot
 
-scp ~/Desktop/wr/LABORATORIA_WR robot@adres_ip_kostki:~/nazwa_programu
+scp ~/Desktop/wr_temp/LABORATORIA_WR robot@192.168.18.77:~/nazwa_programu
 
 ## Receiving programmes from robot
 
-scp robot@adres_ip_kostki:~/nazwa_programu ~/Desktop/wr/LABORATORIA_WR
+scp robot@192.168.18.77:~/nazwa_programu ~/Desktop/wr_temp/LABORATORIA_WR
