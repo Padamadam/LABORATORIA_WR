@@ -4,8 +4,6 @@ import time as tm
 
 USE_BUTTON = False
 
-# def bound(value, threshold):
-#     return max(min(value, threshold), -threshold)
 
 class LineFollower():
     
@@ -21,8 +19,8 @@ class LineFollower():
         if USE_BUTTON:
             btn = ev3.TouchSensor(ev3.INPUT_2)
 
-        ls.mode = 'COL-REFLECT'
-        ls.mode = 'COL-REFLECT'
+        ls.mode = 'RGB-RAW'
+        ls.mode = 'RGB-RAW'
 
         lm = ev3.LargeMotor('outD')
         rm = ev3.LargeMotor('outA')
@@ -30,11 +28,11 @@ class LineFollower():
         # lm.run_forever(time_sp=3000, speed_sp=500)
         # rm.run_timed(time_sp=3000, speed_sp=500)
         
-        speed = 400
+        speed = 200
         
-        Kp = 20
+        Kp = 2
         # dt = 0.01
-        Ki = 1
+        Ki = 0.0
         Kd = 0.0
 	
         integral = 0
@@ -60,10 +58,10 @@ class LineFollower():
                 if not is_running:
                     continue
 
-            lvalue = ls.reflected_light_intensity
-            rvalue = rs.reflected_light_intensity
+            lvalue = sum(ls.raw)/3
+            rvalue = sum(rs.raw)/3
             
-            error = (lvalue - rvalue)
+            error = (lvalue - rvalue) / 5  # dostosowywanie rzedu wielkosci
             
             t_new = tm.perf_counter()
             dt = t_new - t_last
@@ -78,15 +76,15 @@ class LineFollower():
             print("u:",u, "lv:", round(lvalue,2), "rv:", round(rvalue,2), "err:", round(Kp*error, 2), "i:", round(Ki*integral, 2), "d", round(Kd*derivative, 2))
             
 
-            if speed + u >= 1000:
-               lm.run_timed(time_sp = 1000, speed_sp=500)
-               rm.run_timed(time_sp = 1000, speed_sp=-500)
-            elif speed - u >= 1000
-              lm.run_timed(time_sp = 1000, speed_sp=-500)
-              rm.run_timed(time_sp = 1000, speed_sp=500)
-            else:
-                lm.run_timed(time_sp = 1000, speed_sp=speed + u)
-                rm.run_timed(time_sp = 1000, speed_sp=speed - u)
+            #if speed + u >= 500:
+            #    lm.run_timed(time_sp = 1000, speed_sp=500)
+            #    rm.run_timed(time_sp = 1000, speed_sp=-500)
+            #elif speed - u >= 500
+            #   lm.run_timed(time_sp = 1000, speed_sp=-500)
+            #   rm.run_timed(time_sp = 1000, speed_sp=500)
+            #else:
+            lm.run_timed(time_sp = 1000, speed_sp=speed + u)
+            rm.run_timed(time_sp = 1000, speed_sp=speed - u)
             previous_error = error
 
             

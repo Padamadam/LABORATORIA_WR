@@ -9,4 +9,4 @@ ls.mode = 'RGB-RAW'
 ls.mode = 'RGB-RAW'
 
 while(True):
-	print(max(ls.raw), max(rs.raw))
+	print(sum(ls.raw)/3, sum(rs.raw)/3)
