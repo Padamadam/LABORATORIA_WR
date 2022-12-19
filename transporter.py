@@ -15,7 +15,8 @@ class LineFollower():
         
         ls = ev3.ColorSensor(ev3.INPUT_4)
         rs = ev3.ColorSensor(ev3.INPUT_1)
-        
+        infra = ev3.InfraredSensor(ev3.INPUT3)
+
         if USE_BUTTON:
             btn = ev3.TouchSensor(ev3.INPUT_2)
 
@@ -24,6 +25,7 @@ class LineFollower():
 
         lm = ev3.LargeMotor('outD')
         rm = ev3.LargeMotor('outA')
+        servo = ev3.MediumMotor('outB')
 
         # lm.run_forever(time_sp=3000, speed_sp=500)
         # rm.run_timed(time_sp=3000, speed_sp=500)
@@ -86,6 +88,8 @@ class LineFollower():
             lm.run_timed(time_sp = 1000, speed_sp=speed + u)
             rm.run_timed(time_sp = 1000, speed_sp=speed - u)
             previous_error = error
+
+            
 
             
 if __name__ == "__main__":
