@@ -27,15 +27,15 @@ def is_left_red(raw):
 	return raw[0] < 200 and raw[1] > 50 and raw[1] < 70 and raw[2] < 20
 
 def is_right_yellow(raw):
-	return raw[0] < 310 and raw[1] > 360 and raw[1] < 410 and raw[2] < 80
+	return raw[0] < 310 and raw[1] > 300 and raw[1] < 410 and raw[2] < 80
 
 def is_left_yellow(raw):
-	return raw[0] < 290 and raw[1] > 400 and raw[1] < 450 and raw[2] < 50
+	return raw[0] < 310 and raw[1] > 400 and raw[1] < 470 and raw[2] < 50
 
 
 
 while(True):
-	#print(sum(ls.raw), sum(rs.raw))
+	#print(ls.raw, rs.raw)
 	llight = ls.raw
 	rlight = rs.raw
 	if is_left_green(llight) or is_right_green(rlight):
@@ -52,6 +52,6 @@ while(True):
 #  niebieski (24, 145, 103), (34, 134, 135)
 #  czerwony  (189, 60, 11),  (209, 58, 28)
 #  zielony   (22, 185, 33),  (35, 168, 56)
-#  żółty     (264, 428, 36), (289, 382, 61)
+#  żółty     (284, 439, 36), (275, 353, 54)
 #  szary	 (187, 375, 169), (203, 327, 209)
 

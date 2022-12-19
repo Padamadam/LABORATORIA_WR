@@ -1,97 +1,143 @@
 #!/usr/bin/env python3
 import ev3dev.ev3 as ev3
+from ev3dev2.motor import MediumMotor
+from ev3dev2.sensor.lego import InfraredSensor
 import time as tm
 
-USE_BUTTON = False
+USE_BUTTON = True
 
 
-class LineFollower():
+def is_right_green(raw):
+    return raw[0] < 40 and raw[1] > 160 and raw[1] < 180 and raw[2] < 70
+
+def is_left_green(raw):
+    return raw[0] < 30 and raw[1] > 170 and raw[1] < 200 and raw[2] < 50
+
+def is_right_blue(raw):
+    return raw[0] < 50 and raw[1] > 120 and raw[1] < 150 and raw[2] < 150
+
+def is_left_blue(raw):
+    return raw[0] < 40 and raw[1] > 130 and raw[1] < 150 and raw[2] < 110
+
+def is_right_red(raw):
+    return raw[0] < 220 and raw[1] > 50 and raw[1] < 70 and raw[2] < 40
+
+def is_left_red(raw):
+    return raw[0] < 200 and raw[1] > 50 and raw[1] < 70 and raw[2] < 20
+
+def is_right_yellow(raw):
+    return raw[0] < 310 and raw[1] > 300 and raw[1] < 410 and raw[2] < 80
+
+def is_left_yellow(raw):
+    return raw[0] < 310 and raw[1] > 400 and raw[1] < 470 and raw[2] < 50
+
+def detected_color(llight, rlight):
+    if is_left_green(llight):
+        return "green", -1
+    if is_right_green(rlight):
+        return "green", 1
+    if is_left_red(llight):
+        return "red", -1
+    if is_right_red(rlight):
+        return "red", 1
+    if is_left_yellow(llight):
+        return "yellow", -1
+    if is_right_yellow(rlight):
+        return "yellow", 1
+    if is_left_blue(llight):
+        return "blue", -1
+    if is_right_blue(rlight):
+        return "blue", 1
+    else:
+        return None, 0
+
+def regulator(llight, rlight, previous_error):
     
-    def __init__(self):
-        pass
-        
-    
-    def run(self):
-        
-        ls = ev3.ColorSensor(ev3.INPUT_4)
-        rs = ev3.ColorSensor(ev3.INPUT_1)
-        infra = ev3.InfraredSensor(ev3.INPUT3)
+    Kp = 10
+    dt = 0.01
+    Ki = 1
+    Kd = 0
 
+    integral = 0
+
+    lvalue = sum(llight)/3
+    rvalue = sum(rlight)/3
+    
+    error = (lvalue - rvalue) / 5  # dostosowywanie rzedu wielkosci
+    
+    integral += (error*dt)
+    derivative = (error-previous_error) / dt
+
+    u = int((Kp*error) + (Ki*integral) + (Kd*derivative))
+
+    print("u:",u, "lv:", round(lvalue,2), "rv:", round(rvalue,2), "err:", round(Kp*error, 2), "i:", round(Ki*integral, 2), "d", round(Kd*derivative, 2))
+
+    return u, error
+
+def get_packet(color, side, lm, rm):
+    lm.run_timed(time_sp = 1000, speed_sp=0)
+    rm.run_timed(time_sp = 1000, speed_sp=0)
+    return
+
+def run():
+    
+    ls = ev3.ColorSensor(ev3.INPUT_4)
+    rs = ev3.ColorSensor(ev3.INPUT_1)
+    infra = InfraredSensor(ev3.INPUT_3)
+
+    if USE_BUTTON:
+        btn = ev3.TouchSensor(ev3.INPUT_2)
+
+    ls.mode = 'RGB-RAW'
+    ls.mode = 'RGB-RAW'
+
+    lm = ev3.LargeMotor('outD')
+    rm = ev3.LargeMotor('outA')
+    servo = MediumMotor('outB')
+
+    speed = 150
+
+    is_running = not USE_BUTTON
+
+    print("Robot ready")
+
+    prev_pressed = False
+    t_last = tm.perf_counter()
+    previous_error = 0
+    
+    angle = 80
+
+    servo.on_for_degrees(20, -angle)
+
+    tm.sleep(5)
+
+    servo.on_for_degrees(2, angle)
+
+    while(True):
         if USE_BUTTON:
-            btn = ev3.TouchSensor(ev3.INPUT_2)
+            pressed = btn.is_pressed
+            if pressed and not prev_pressed:
+                is_running = not is_running
+                t_last = tm.perf_counter()
+            prev_pressed = pressed
 
-        ls.mode = 'RGB-RAW'
-        ls.mode = 'RGB-RAW'
+        if not is_running:
+            continue
 
-        lm = ev3.LargeMotor('outD')
-        rm = ev3.LargeMotor('outA')
-        servo = ev3.MediumMotor('outB')
+        llight = ls.raw
+        rlight = rs.raw
 
-        # lm.run_forever(time_sp=3000, speed_sp=500)
-        # rm.run_timed(time_sp=3000, speed_sp=500)
-        
-        speed = 200
-        
-        Kp = 2
-        # dt = 0.01
-        Ki = 0.0
-        Kd = 0.0
-	
-        integral = 0
-        previous_error = 0
+        print(infra.proximity)
 
-        # lm.run_forever(speed_sp=0)
-        # rm.run_forever(speed_sp=0)
-        is_running = False
-
-        print("Robot ready")
-
-        prev_pressed = False
-        t_last = tm.perf_counter()
-
-        while(True):
-            if USE_BUTTON:
-                pressed = btn.is_pressed
-                if pressed and not prev_pressed:
-                    is_running = not is_running
-                    t_last = tm.perf_counter()
-                prev_pressed = pressed
-
-                if not is_running:
-                    continue
-
-            lvalue = sum(ls.raw)/3
-            rvalue = sum(rs.raw)/3
-            
-            error = (lvalue - rvalue) / 5  # dostosowywanie rzedu wielkosci
-            
-            t_new = tm.perf_counter()
-            dt = t_new - t_last
-            t_last = t_new
-
-            integral += (error*dt)
-            derivative = (error-previous_error) / dt
-
-            u = int((Kp*error) + (Ki*integral) + (Kd*derivative))
-
-            print(dt)
-            print("u:",u, "lv:", round(lvalue,2), "rv:", round(rvalue,2), "err:", round(Kp*error, 2), "i:", round(Ki*integral, 2), "d", round(Kd*derivative, 2))
-            
-
-            #if speed + u >= 500:
-            #    lm.run_timed(time_sp = 1000, speed_sp=500)
-            #    rm.run_timed(time_sp = 1000, speed_sp=-500)
-            #elif speed - u >= 500
-            #   lm.run_timed(time_sp = 1000, speed_sp=-500)
-            #   rm.run_timed(time_sp = 1000, speed_sp=500)
-            #else:
+        color, side = detected_color(llight, rlight)
+        if color is not None:
+            get_packet(color, side, lm, rm)
+        else:
+            u, previous_error = regulator(llight, rlight, previous_error)
             lm.run_timed(time_sp = 1000, speed_sp=speed + u)
             rm.run_timed(time_sp = 1000, speed_sp=speed - u)
-            previous_error = error
 
-            
 
             
 if __name__ == "__main__":
-    robot = LineFollower()
-    robot.run()
+    run()
