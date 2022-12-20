@@ -6,6 +6,21 @@ import time as tm
 
 USE_BUTTON = True
 
+def set_modules():
+    if USE_BUTTON:
+        btn = ev3.TouchSensor(ev3.INPUT_2)
+    
+    ls = ev3.ColorSensor(ev3.INPUT_4)
+    rs = ev3.ColorSensor(ev3.INPUT_1)
+    ls.mode = 'RGB-RAW'
+    ls.mode = 'RGB-RAW'
+    lm = ev3.LargeMotor('outD')
+    rm = ev3.LargeMotor('outA')
+    servo = MediumMotor('outB')
+    infra = InfraredSensor(ev3.INPUT_3)
+    return ls, rs, lm, rm, btn, infra, servo
+    
+
 
 def is_right_green(raw):
     return raw[0] < 40 and raw[1] > 160 and raw[1] < 180 and raw[2] < 70
@@ -81,20 +96,7 @@ def get_packet(color, side, lm, rm):
 
 def run():
     
-    ls = ev3.ColorSensor(ev3.INPUT_4)
-    rs = ev3.ColorSensor(ev3.INPUT_1)
-    infra = InfraredSensor(ev3.INPUT_3)
-
-    if USE_BUTTON:
-        btn = ev3.TouchSensor(ev3.INPUT_2)
-
-    ls.mode = 'RGB-RAW'
-    ls.mode = 'RGB-RAW'
-
-    lm = ev3.LargeMotor('outD')
-    rm = ev3.LargeMotor('outA')
-    servo = MediumMotor('outB')
-
+    ls, rs, lm, rm, btn, infra, servo = set_modules()
     speed = 150
 
     is_running = not USE_BUTTON
@@ -102,7 +104,7 @@ def run():
     print("Robot ready")
 
     prev_pressed = False
-    t_last = tm.perf_counter()
+
     previous_error = 0
     
     angle = 80
@@ -118,7 +120,6 @@ def run():
             pressed = btn.is_pressed
             if pressed and not prev_pressed:
                 is_running = not is_running
-                t_last = tm.perf_counter()
             prev_pressed = pressed
 
         if not is_running:
