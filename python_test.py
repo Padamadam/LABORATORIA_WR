@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 import ev3dev.ev3 as ev3
-
+from ev3dev2.motor import LargeMotor
+from ev3dev2.sensor.lego import ColorSensor, TouchSensor
 USE_BUTTON = True
 
 
+"""
+Uruchomienie modulow
+"""
 def set_modules():
     if USE_BUTTON:
-        btn = ev3.TouchSensor(ev3.INPUT_2)
+        btn = TouchSensor(ev3.INPUT_2)
     
-    ls = ev3.ColorSensor(ev3.INPUT_4)
-    rs = ev3.ColorSensor(ev3.INPUT_1)
+    ls = ColorSensor(ev3.INPUT_4)
+    rs = ColorSensor(ev3.INPUT_1)
     ls.mode = 'COL-REFLECT'
     ls.mode = 'COL-REFLECT'
-    lm = ev3.LargeMotor('outD')
-    rm = ev3.LargeMotor('outA')
+    lm = LargeMotor('outD')
+    rm = LargeMotor('outA')
     return ls, rs, lm, rm, btn
     
 
+"""
+Regulator PID
+"""
 def regulator(lvalue, rvalue, previous_error):
     
     Kp = 5
@@ -25,14 +32,12 @@ def regulator(lvalue, rvalue, previous_error):
     Kd = 0.1
 
     integral = 0
-
     
-    error = (lvalue - rvalue)  # dostosowywanie rzedu wielkosci
-    
+    error = (lvalue - rvalue)
     integral += (error*dt)
     derivative = (error-previous_error) / dt
 
-    u = int((Kp*error) + (Ki*integral) + (Kd*derivative))
+    u = int(Kp*(error + (Ki*integral) + (Kd*derivative)))
 
     print("u:",u, "lv:", round(lvalue,2), "rv:", round(rvalue,2), "err:", round(Kp*error, 2), "i:", round(Ki*integral, 2), "d", round(Kd*derivative, 2))
 
@@ -41,14 +46,13 @@ def regulator(lvalue, rvalue, previous_error):
 
 def run():        
     is_running = False
+    prev_pressed = False
     
     speed = 300
     previous_error = 0
     ls, rs, lm, rm, btn = set_modules()
     
     print("Robot ready")
-
-    prev_pressed = False
 
     while(True):
         if USE_BUTTON:
