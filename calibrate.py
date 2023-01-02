@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import ev3dev.ev3 as ev3
+from transporter import turn_back, turn_90, are_black
+from ev3dev2.motor import MediumMotor, LargeMotor, MoveTank
+from time import sleep
 
 ls = ev3.ColorSensor(ev3.INPUT_4)
 rs = ev3.ColorSensor(ev3.INPUT_1)
-
+tank =  MoveTank('outD', 'outA')
 
 ls.mode = 'RGB-RAW'
 ls.mode = 'RGB-RAW'
+
 
 def is_right_green(raw):
 	return raw[0] < 40 and raw[1] > 160 and raw[1] < 180 and raw[2] < 70
@@ -38,12 +42,22 @@ while(True):
 	#print(ls.raw, rs.raw)
 	llight = ls.raw
 	rlight = rs.raw
+
+	print(llight, rlight, are_black(llight, rlight))
+
 	if is_left_green(llight) or is_right_green(rlight):
 		print("green")
+		sleep(1)
+		turn_back(tank)
+		
 	elif is_left_red(llight) or is_right_red(rlight):
 		print("red")
+		sleep(1)
+		turn_90(1, tank)
 	elif is_left_yellow(llight) or is_right_yellow(rlight):
 		print("yellow")
+		sleep(1)
+		turn_90(-1, tank)
 	elif is_left_blue(llight) or is_right_blue(rlight):
 		print("blue")
 	else:
@@ -54,4 +68,5 @@ while(True):
 #  zielony   (22, 185, 33),  (35, 168, 56)
 #  żółty     (284, 439, 36), (275, 353, 54)
 #  szary	 (187, 375, 169), (203, 327, 209)
+#  czarny    (11, 51, 8), (21, 44, 20)
 
