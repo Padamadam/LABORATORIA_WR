@@ -15,6 +15,7 @@ UWAGI:
 """
 
 USE_BUTTON = True
+SPEED = 200 # 150
 
 """
 Uruchomienie modulow
@@ -69,19 +70,20 @@ def is_left_yellow(raw):
     return raw[0] < 310 and raw[1] > 400 and raw[1] < 470 and raw[2] < 50
 
 def is_left_black(raw):
-    return raw[0] < 20 and raw[1] < 60 and raw[2] < 20
+    return raw[0] < 20 and raw[1] < 80 and raw[2] < 20
 
 def is_right_black(raw):
-    return raw[0] < 30 and raw[1] < 55 and raw[2] < 30
+    return raw[0] < 30 and raw[1] < 80 and raw[2] < 30
 
 def is_main_trail(llight, rlight):
     left_black = is_left_black(llight)
     right_black = is_right_black(rlight)
     left_yellow = is_left_yellow(llight)
-    right_yellow = is_right_black(rlight)
+    right_yellow = is_right_yellow(rlight)
 
     if left_yellow and right_yellow:
         return False
+    print(left_black, left_yellow, right_black, right_yellow)
     return (left_black or left_yellow) and (right_black or right_yellow)
 
 def are_green(llight, rlight):
@@ -110,17 +112,20 @@ def detected_color(llight, rlight):
 def regulator(llight, rlight, previous_error):
     
     # Kp = 10
-    Kp = 7
+    Kp = 9     # prev: 11
     dt = 0.01
-    Ki = 1
-    Kd = 0
+    Ki = 1.5    # prev: 1.5
+    Kd = 0      # prev: 0
 
     integral = 0
 
-    # obliczanie sredniej wartosci wykrytych danych RGB
-    lvalue = sum(llight)/3
-    rvalue = sum(rlight)/3
-    
+    if is_left_blue(llight) or is_right_blue(rlight) or is_left_green(llight) or is_right_green(rlight):
+        lvalue, rvalue = 0, 0
+    else:
+        # obliczanie sredniej wartosci wykrytych danych RGB
+        lvalue = sum(llight)/3
+        rvalue = sum(rlight)/3
+
     error = (lvalue - rvalue) / 5  # dostosowywanie rzedu wielkosci
     integral += (error*dt)
     derivative = (error-previous_error) / dt
@@ -136,18 +141,18 @@ def turn_back(tank):    # zawrocenie o 180 stopni
     tank.on_for_degrees(-10, 10, 160*3)
     
 def turn_90(side, tank, ls, rs, lm, rm): # skret o 90 stopni
+    tank.on_for_degrees(side * 10, -side * 10, 80*3)  
 
-    if side == -1:
+    # if side == -1:
 
-        while not is_right_yellow(rs.raw):
-            lm.run_timed(time_sp = 1000, speed_sp=-150)
-            rm.run_timed(time_sp = 1000, speed_sp=150)
-    elif side == 1:
-        while not is_left_yellow(ls.raw):
-            lm.run_timed(time_sp = 1000, speed_sp=150)
-            rm.run_timed(time_sp = 1000, speed_sp=-150)
+    #     while not is_right_yellow(rs.raw):
+    #         lm.run_timed(time_sp = 1000, speed_sp=-150)
+    #         rm.run_timed(time_sp = 1000, speed_sp=150)
+    # elif side == 1:
+    #     while not is_left_yellow(ls.raw):
+    #         lm.run_timed(time_sp = 1000, speed_sp=150)
+    #         rm.run_timed(time_sp = 1000, speed_sp=-150)
 
-        #tank.on_for_degrees(10, -10, 80*3)  
          
 def approach(side, tank, infra, ls, rs, lm, rm):
     # lm.run_timed(time_sp = 1000, speed_sp=0)
@@ -167,7 +172,7 @@ def approach(side, tank, infra, ls, rs, lm, rm):
 
 def lift(servo):
     angle = 80
-    servo.on_for_degrees(20, -angle)
+    servo.on_for_degrees(15, -angle)
     
     # testowe opuszczanie
     # tm.sleep(5)
@@ -179,7 +184,7 @@ def put_down(servo):
     
     
 def reach_dropoff(lm, rm, ls, rs):
-    speed = 10
+    speed = SPEED
     previous_error = 0
     llight = ls.raw
     rlight = rs.raw
@@ -194,7 +199,7 @@ def get_package(side, tank, infra, servo, lm, rm, ls, rs):
     lift(servo)
     turn_back(tank)
     previous_error = 0
-    speed = 150
+    speed = 100
     llight, rlight = ls.raw, rs.raw
     while not is_main_trail(llight, rlight):
         u, previous_error = regulator(llight, rlight, previous_error)
@@ -202,15 +207,15 @@ def get_package(side, tank, infra, servo, lm, rm, ls, rs):
         rm.run_timed(time_sp = 1000, speed_sp=speed - u)
         llight, rlight = ls.raw, rs.raw
     tank.on_for_seconds(10, 10, seconds=1)
-    turn_90(-side, tank)
+    turn_90(-1, tank, ls, rs, lm, rm)
 
 
 def put_package(side, tank, infra, servo, lm, rm, ls, rs):
     angle = 80
-    speed = 150
+    speed = SPEED
     previous_error = 0
     tank.on_for_seconds(10, 10, 1)
-    turn_90(side, tank)
+    turn_90(side, tank, ls, rs, lm, rm)
     llight, rlight = ls.raw, rs.raw
     while not are_green(llight, rlight):
         u, previous_error = regulator(llight, rlight, previous_error)
@@ -218,7 +223,9 @@ def put_package(side, tank, infra, servo, lm, rm, ls, rs):
         rm.run_timed(time_sp = 1000, speed_sp=speed - u)
         llight, rlight = ls.raw, rs.raw
 
+    tank.off()
     put_down(servo)
+    tm.sleep(2)
     tank.on_for_seconds(-10, -10, seconds=3)
 
 
@@ -227,7 +234,7 @@ def run():
     prev_pressed = False
 
     ls, rs, lm, rm, btn, infra, servo, tank = set_modules()
-    speed = 150
+    speed = SPEED
 
     
     print("Robot ready")

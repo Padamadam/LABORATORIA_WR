@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import ev3dev.ev3 as ev3
-from transporter import turn_back, turn_90, are_black
+from transporter import turn_back, turn_90,is_main_trail
 from ev3dev2.motor import MediumMotor, LargeMotor, MoveTank
 from time import sleep
 
@@ -43,25 +43,25 @@ while(True):
 	llight = ls.raw
 	rlight = rs.raw
 
-	print(llight, rlight, are_black(llight, rlight))
+	print(llight, rlight, is_main_trail(llight, rlight))
 
-	if is_left_green(llight) or is_right_green(rlight):
-		print("green")
-		sleep(1)
-		turn_back(tank)
+	# if is_left_green(llight) or is_right_green(rlight):
+	# 	print("green")
+	# 	sleep(1)
+	# 	turn_back(tank)
 		
-	elif is_left_red(llight) or is_right_red(rlight):
-		print("red")
-		sleep(1)
-		turn_90(1, tank)
-	elif is_left_yellow(llight) or is_right_yellow(rlight):
-		print("yellow")
-		sleep(1)
-		turn_90(-1, tank)
-	elif is_left_blue(llight) or is_right_blue(rlight):
-		print("blue")
-	else:
-		print("No color detected")
+	# elif is_left_red(llight) or is_right_red(rlight):
+	# 	print("red")
+	# 	sleep(1)
+	# 	turn_90(1, tank)
+	# elif is_left_yellow(llight) or is_right_yellow(rlight):
+	# 	print("yellow")
+	# 	sleep(1)
+	# 	turn_90(-1, tank)
+	# elif is_left_blue(llight) or is_right_blue(rlight):
+	# 	print("blue")
+	# else:
+	# 	print("No color detected")
 
 #  niebieski (24, 145, 103), (34, 134, 135)
 #  czerwony  (189, 60, 11),  (209, 58, 28)
