@@ -45,23 +45,23 @@ while(True):
 
 	print(llight, rlight, is_main_trail(llight, rlight))
 
-	# if is_left_green(llight) or is_right_green(rlight):
-	# 	print("green")
-	# 	sleep(1)
-	# 	turn_back(tank)
+	if is_left_green(llight) or is_right_green(rlight):
+		print("green")
+		sleep(1)
+		turn_back(tank)
 		
-	# elif is_left_red(llight) or is_right_red(rlight):
-	# 	print("red")
-	# 	sleep(1)
-	# 	turn_90(1, tank)
-	# elif is_left_yellow(llight) or is_right_yellow(rlight):
-	# 	print("yellow")
-	# 	sleep(1)
-	# 	turn_90(-1, tank)
-	# elif is_left_blue(llight) or is_right_blue(rlight):
-	# 	print("blue")
-	# else:
-	# 	print("No color detected")
+	elif is_left_red(llight) or is_right_red(rlight):
+		print("red")
+		sleep(1)
+		turn_90(1, tank)
+	elif is_left_yellow(llight) or is_right_yellow(rlight):
+		print("yellow")
+		sleep(1)
+		turn_90(-1, tank)
+	elif is_left_blue(llight) or is_right_blue(rlight):
+		print("blue")
+	else:
+		print("No color detected")
 
 #  niebieski (24, 145, 103), (34, 134, 135)
 #  czerwony  (189, 60, 11),  (209, 58, 28)
